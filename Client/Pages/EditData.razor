@@ -1,0 +1,88 @@
+﻿@page "/editdata"
+@using CustomerData.Shared
+@using CustomerData.Client.Shared
+@inject HttpClient Http
+
+<h1>CustomerData</h1>
+
+@if (forecasts == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Customer ID</th>
+                <th>Name</th>
+                <th>Details</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var forecast in forecasts)
+            {
+                    <tr>
+                        <td>
+                            <input class="form-control" type="text" placeholder="@forecast.customer_id.ToString()" />
+                        </td>
+                        <td>
+                            <input class="form-control" type="text" placeholder="@forecast.name" />
+                        </td>
+                        <td>
+                            <input class="form-control" type="text" placeholder="@forecast.street" />
+                        </td>
+                        <td>
+                            <input class="form-control" type="text" placeholder="@forecast.zip" />
+                        </td>
+                        <td>
+                            <input class="form-control" type="text" placeholder="@forecast.city" />
+                        </td>
+                    </tr>
+                    }
+            </tbody>
+    </table>
+}
+
+
+@code {
+    private CustomerForecast[] forecasts;
+
+    private int cd_id = 0;
+    private string cd_name = string.Empty, cd_street = string.Empty, cd_zip = string.Empty, cd_city = string.Empty;
+
+    CustomerData.Client.Shared.Modal modal1;
+
+    private void openmodal(int id)
+    {
+            fillModal(getDetail(id));
+            modal1.Show();
+    }
+
+    private CustomerForecast getDetail(int id)
+    {
+        foreach(CustomerForecast customer in forecasts)
+        {
+            if(customer.customer_id == id)
+            {
+                return customer;
+            }
+        }
+        return new CustomerForecast();
+    }
+
+    private void fillModal(CustomerForecast customer)
+    {
+        cd_id = customer.customer_id;
+        cd_name = customer.name;
+        cd_street = customer.street;
+        cd_zip = customer.zip;
+        cd_city = customer.city;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        forecasts = await Http.GetFromJsonAsync<CustomerForecast[]>("CustomerForecast");
+    }
+
+}

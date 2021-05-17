@@ -1,0 +1,136 @@
+﻿@page "/fetchdata"
+@using CustomerData.Shared
+@using CustomerData.Client.Shared
+@using Microsoft.AspNetCore
+@inject HttpClient Http
+
+<h1>CustomerData</h1>
+
+<p>These are customers from the database</p>
+
+@if (forecasts == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Customer ID</th>
+                <th>Name</th>
+                <th>Edit</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var forecast in forecasts)
+            {
+                <tr>
+
+                    <td>@forecast.customer_id.ToString()</td>
+                    <td>@forecast.name</td>
+                    <td><button class="btn btn-primary" @onclick="() => edit(forecast.customer_id)">Edit</button></td>
+
+                </tr>
+            }
+        </tbody>
+    </table>
+    <br />
+    <button class="btn btn-primary" @onclick="newCustomer">Add</button>
+    <Modal @ref="modal1" Title="Customer details">
+        <label style="font-weight: bold;">Customer ID:</label><input @bind="@cd_id" class="form-control" type="text" disabled />
+        <label style="font-weight: bold;">Name:</label><input @bind="@cd_name" class="form-control" type="text" placeholder="@cd_name" />
+        <label style="font-weight: bold;">Street:</label><input @bind="@cd_street" class="form-control" type="text" placeholder="@cd_street" />
+        <label style="font-weight: bold;">ZIP:</label><input @bind="@cd_zip" class="form-control" type="text" placeholder="@cd_zip" />
+        <label style="font-weight: bold;">City:</label><input @bind="@cd_city" class="form-control" type="text" placeholder="@cd_city" />
+        <br />
+        <button style="float:right;" class="btn btn-primary" @onclick="saveCustomer">Save</button>
+    </Modal>
+
+    <Modal @ref="modal2" Title="New customer">
+        <label style="font-weight: bold;">Customer ID:</label><input @bind="@cd_id" class="form-control" type="text" disabled />
+        <label style="font-weight: bold;">Name:</label><input @bind="@cd_name" class="form-control" type="text" placeholder="@cd_name" />
+        <label style="font-weight: bold;">Street:</label><input @bind="@cd_street" class="form-control" type="text" placeholder="@cd_street" />
+        <label style="font-weight: bold;">ZIP:</label><input @bind="@cd_zip" class="form-control" type="text" placeholder="@cd_zip" />
+        <label style="font-weight: bold;">City:</label><input @bind="@cd_city" class="form-control" type="text" placeholder="@cd_city" />
+        <br />
+        <button style="float:right;" class="btn btn-primary" @onclick="addCustomer">Save</button>
+    </Modal>
+}
+
+
+@code {
+    private CustomerForecast[] forecasts;
+
+    private int cd_id = 0;
+    private string cd_name = string.Empty, cd_street = string.Empty, cd_zip = string.Empty, cd_city = string.Empty;
+
+    CustomerData.Client.Shared.Modal modal1;
+    CustomerData.Client.Shared.Modal modal2;
+
+    private void edit(int id)
+    {
+
+        fillModal(getDetail(id));
+        modal1.Show();
+    }
+
+    private void newCustomer()
+    {
+        cleanModal();
+        modal1.Show();
+    }
+
+    private CustomerForecast getDetail(int id)
+    {
+        foreach (CustomerForecast customer in forecasts)
+        {
+            if (customer.customer_id == id)
+            {
+                return customer;
+            }
+        }
+        return new CustomerForecast();
+    }
+
+    private void saveCustomer()
+    {
+        CustomerForecast customer = new CustomerForecast() { customer_id = cd_id, name = cd_name, street = cd_street, zip = cd_zip, city = cd_city };
+        //customer.updateCustomer(customer);
+        Console.WriteLine(customer.city);
+        modal1.Show();
+    }
+
+    private void addCustomer()
+    {
+        CustomerForecast customer = new CustomerForecast() { customer_id = 0, name = cd_name, street = cd_street, zip = cd_zip, city = cd_city };
+        //customer.createCustomer(customer);
+        Console.WriteLine(customer.name);
+        modal2.Show();
+    }
+
+    private void cleanModal()
+    {
+        cd_id = 0;
+        cd_name = string.Empty;
+        cd_street = string.Empty;
+        cd_zip = string.Empty;
+        cd_city = string.Empty;
+
+    }
+
+    private void fillModal(CustomerForecast customer)
+    {
+        cd_id = customer.customer_id;
+        cd_name = customer.name;
+        cd_street = customer.street;
+        cd_zip = customer.zip;
+        cd_city = customer.city;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        forecasts = await Http.GetFromJsonAsync<CustomerForecast[]>("CustomerForecast");
+    }
+
+}
